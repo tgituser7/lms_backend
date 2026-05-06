@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import Enrollment from '../models/Enrollment';
 import Course from '../models/Course';
-import Lesson from '../models/Lesson';
 import { AuthRequest } from '../middleware/auth';
 
 export const enrollCourse = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -35,23 +34,3 @@ export const getMyEnrollments = async (req: AuthRequest, res: Response): Promise
   }
 };
 
-export const markLessonComplete = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const enrollment = await Enrollment.findOne({ student: req.user!._id, course: req.params.courseId });
-    if (!enrollment) {
-      res.status(404).json({ success: false, message: 'Not enrolled in this course' });
-      return;
-    }
-    const lessonId = req.params.lessonId as any;
-    if (!enrollment.completedLessons.includes(lessonId)) {
-      enrollment.completedLessons.push(lessonId);
-    }
-    const totalLessons = await Lesson.countDocuments({ course: req.params.courseId });
-    enrollment.progress = totalLessons > 0 ? Math.round((enrollment.completedLessons.length / totalLessons) * 100) : 0;
-    if (enrollment.progress === 100) enrollment.completedAt = new Date();
-    await enrollment.save();
-    res.json({ success: true, enrollment });
-  } catch {
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-};

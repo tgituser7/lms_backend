@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import {
   getAllUsers, createUser, updateUser, deleteUser,
-  getAllCourses, createCourse, assignInstructor, togglePublish, getStats,
+  getAllCourses, createCourse, deleteCourse, assignInstructor, togglePublish, getStats,
   getStudentEnrollments, enrollStudent, unenrollStudent,
 } from '../controllers/adminController';
 import { protect, authorize } from '../middleware/auth';
@@ -23,6 +23,7 @@ router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
 router.get('/courses', getAllCourses);
 router.post('/courses', createCourse);
+router.delete('/courses/:courseId', deleteCourse);
 router.put('/courses/:courseId/assign', assignInstructor);
 router.put('/courses/:courseId/publish', togglePublish);
 router.get('/students/:studentId/enrollments', getStudentEnrollments);

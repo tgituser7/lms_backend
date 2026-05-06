@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
+import fs from 'fs';
 import User from '../models/User';
 import Course from '../models/Course';
 import Enrollment from '../models/Enrollment';
+import Chapter from '../models/Chapter';
 
 export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -74,6 +76,28 @@ export const getAllCourses = async (_req: Request, res: Response): Promise<void>
       .populate('instructor', 'name email')
       .sort({ createdAt: -1 });
     res.json({ success: true, count: courses.length, courses });
+  } catch {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+export const deleteCourse = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { courseId } = req.params;
+    const course = await Course.findById(courseId);
+    if (!course) {
+      res.status(404).json({ success: false, message: 'Course not found' });
+      return;
+    }
+    const chapters = await Chapter.find({ course: courseId });
+    for (const ch of chapters) {
+      if (ch.videoPath && fs.existsSync(ch.videoPath)) fs.unlinkSync(ch.videoPath);
+      if (ch.pdfPath && fs.existsSync(ch.pdfPath)) fs.unlinkSync(ch.pdfPath);
+    }
+    await Chapter.deleteMany({ course: courseId });
+    await Enrollment.deleteMany({ course: courseId });
+    await Course.findByIdAndDelete(courseId);
+    res.json({ success: true, message: 'Course deleted' });
   } catch {
     res.status(500).json({ success: false, message: 'Server error' });
   }

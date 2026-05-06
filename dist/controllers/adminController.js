@@ -3,10 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getStats = exports.unenrollStudent = exports.enrollStudent = exports.getStudentEnrollments = exports.togglePublish = exports.assignInstructor = exports.createCourse = exports.getAllCourses = exports.deleteUser = exports.updateUser = exports.createUser = exports.getAllUsers = void 0;
+exports.getStats = exports.unenrollStudent = exports.enrollStudent = exports.getStudentEnrollments = exports.togglePublish = exports.assignInstructor = exports.createCourse = exports.deleteCourse = exports.getAllCourses = exports.deleteUser = exports.updateUser = exports.createUser = exports.getAllUsers = void 0;
+const fs_1 = __importDefault(require("fs"));
 const User_1 = __importDefault(require("../models/User"));
 const Course_1 = __importDefault(require("../models/Course"));
 const Enrollment_1 = __importDefault(require("../models/Enrollment"));
+const Chapter_1 = __importDefault(require("../models/Chapter"));
 const getAllUsers = async (req, res) => {
     try {
         const { role } = req.query;
@@ -94,6 +96,31 @@ const getAllCourses = async (_req, res) => {
     }
 };
 exports.getAllCourses = getAllCourses;
+const deleteCourse = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const course = await Course_1.default.findById(courseId);
+        if (!course) {
+            res.status(404).json({ success: false, message: 'Course not found' });
+            return;
+        }
+        const chapters = await Chapter_1.default.find({ course: courseId });
+        for (const ch of chapters) {
+            if (ch.videoPath && fs_1.default.existsSync(ch.videoPath))
+                fs_1.default.unlinkSync(ch.videoPath);
+            if (ch.pdfPath && fs_1.default.existsSync(ch.pdfPath))
+                fs_1.default.unlinkSync(ch.pdfPath);
+        }
+        await Chapter_1.default.deleteMany({ course: courseId });
+        await Enrollment_1.default.deleteMany({ course: courseId });
+        await Course_1.default.findByIdAndDelete(courseId);
+        res.json({ success: true, message: 'Course deleted' });
+    }
+    catch {
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+exports.deleteCourse = deleteCourse;
 const createCourse = async (req, res) => {
     try {
         const course = await Course_1.default.create(req.body);

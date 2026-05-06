@@ -21,6 +21,7 @@ router.put('/users/:id', adminController_1.updateUser);
 router.delete('/users/:id', adminController_1.deleteUser);
 router.get('/courses', adminController_1.getAllCourses);
 router.post('/courses', adminController_1.createCourse);
+router.delete('/courses/:courseId', adminController_1.deleteCourse);
 router.put('/courses/:courseId/assign', adminController_1.assignInstructor);
 router.put('/courses/:courseId/publish', adminController_1.togglePublish);
 router.get('/students/:studentId/enrollments', adminController_1.getStudentEnrollments);
