@@ -3,10 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.markLessonComplete = exports.getMyEnrollments = exports.enrollCourse = void 0;
+exports.getMyEnrollments = exports.enrollCourse = void 0;
 const Enrollment_1 = __importDefault(require("../models/Enrollment"));
 const Course_1 = __importDefault(require("../models/Course"));
-const Lesson_1 = __importDefault(require("../models/Lesson"));
 const enrollCourse = async (req, res) => {
     try {
         const course = await Course_1.default.findById(req.params.courseId);
@@ -40,26 +39,3 @@ const getMyEnrollments = async (req, res) => {
     }
 };
 exports.getMyEnrollments = getMyEnrollments;
-const markLessonComplete = async (req, res) => {
-    try {
-        const enrollment = await Enrollment_1.default.findOne({ student: req.user._id, course: req.params.courseId });
-        if (!enrollment) {
-            res.status(404).json({ success: false, message: 'Not enrolled in this course' });
-            return;
-        }
-        const lessonId = req.params.lessonId;
-        if (!enrollment.completedLessons.includes(lessonId)) {
-            enrollment.completedLessons.push(lessonId);
-        }
-        const totalLessons = await Lesson_1.default.countDocuments({ course: req.params.courseId });
-        enrollment.progress = totalLessons > 0 ? Math.round((enrollment.completedLessons.length / totalLessons) * 100) : 0;
-        if (enrollment.progress === 100)
-            enrollment.completedAt = new Date();
-        await enrollment.save();
-        res.json({ success: true, enrollment });
-    }
-    catch {
-        res.status(500).json({ success: false, message: 'Server error' });
-    }
-};
-exports.markLessonComplete = markLessonComplete;
