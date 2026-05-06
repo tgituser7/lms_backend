@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const chapterController_1 = require("../controllers/chapterController");
+const auth_1 = require("../middleware/auth");
+const upload_1 = require("../middleware/upload");
+const router = (0, express_1.Router)({ mergeParams: true });
+router.get('/', auth_1.protect, chapterController_1.getChapters);
+router.post('/', auth_1.protect, (0, auth_1.authorize)('instructor', 'admin'), chapterController_1.createChapter);
+router.put('/:chapterId', auth_1.protect, (0, auth_1.authorize)('instructor', 'admin'), chapterController_1.updateChapter);
+router.delete('/:chapterId', auth_1.protect, (0, auth_1.authorize)('instructor', 'admin'), chapterController_1.deleteChapter);
+router.post('/:chapterId/upload-video', auth_1.protect, (0, auth_1.authorize)('instructor', 'admin'), upload_1.uploadVideo, chapterController_1.uploadChapterVideo);
+router.post('/:chapterId/upload-pdf', auth_1.protect, (0, auth_1.authorize)('instructor', 'admin'), upload_1.uploadPdf, chapterController_1.uploadChapterPdf);
+router.get('/:chapterId/video', auth_1.protect, chapterController_1.streamVideo);
+router.get('/:chapterId/pdf', auth_1.protect, chapterController_1.streamPdf);
+router.put('/:chapterId/progress', auth_1.protect, (0, auth_1.authorize)('student'), chapterController_1.updateChapterProgress);
+exports.default = router;
